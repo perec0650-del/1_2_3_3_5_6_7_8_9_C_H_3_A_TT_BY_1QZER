@@ -1,6 +1,8 @@
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 
+
+
 local player = game.Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 local UIS = game:GetService("UserInputService")
@@ -206,6 +208,38 @@ StatusBackground.BackgroundTransparency = 1
 StatusBackground.TextScaled = true
 StatusBackground.TextColor3 = Color3.new(1, 1, 1)
 
+local CopyAvatarLabel = Instance.new("TextLabel", newFrame)
+CopyAvatarLabel.Name = "CopyAvatarLabel"
+CopyAvatarLabel.Text = "Copy Avatar"
+CopyAvatarLabel.Visible = false	
+CopyAvatarLabel.TextScaled = true
+CopyAvatarLabel.TextColor3 = Color3.new(1, 1, 1)
+CopyAvatarLabel.BackgroundTransparency = 1
+CopyAvatarLabel.Size = UDim2.new(0, 144,0, 50)
+CopyAvatarLabel.Position = UDim2.new(0.082, 0,0.558, 0)
+
+local CopyAvatarButton = Instance.new("TextButton", newFrame)
+CopyAvatarButton.Name = "CopyAvatarButton"
+CopyAvatarButton.Text = "Apply"
+CopyAvatarButton.Visible = false
+CopyAvatarButton.TextColor3 = Color3.new(0, 0, 0)
+CopyAvatarButton.BackgroundColor3 = Color3.fromRGB(134, 227, 255)
+CopyAvatarButton.Size = UDim2.new(0, 93,0, 38)
+CopyAvatarButton.Position = UDim2.new(0.601, 0,0.571, 0)
+CopyAvatarButton.TextScaled = true
+
+local CopyAvatarTextBox = Instance.new("TextBox", newFrame)
+CopyAvatarTextBox.Name = "CopyAvatarTextBox"
+CopyAvatarTextBox.Visible = false
+CopyAvatarTextBox.Text = ""
+CopyAvatarTextBox.PlaceholderText = "ID"
+CopyAvatarTextBox.TextScaled = true
+CopyAvatarTextBox.BackgroundColor3 = Color3.new(1, 1, 1)
+CopyAvatarTextBox.Size = UDim2.new(0, 111,0, 38)
+CopyAvatarTextBox.Position = UDim2.new(0.37, 0,0.571, 0)
+CopyAvatarTextBox.PlaceholderColor3 = Color3.new(0.498039, 0.498039, 0.498039)
+
+
 local CosmeticLabel = Instance.new("TextLabel", newFrame)
 CosmeticLabel.Name = "Cosmetics"
 CosmeticLabel.Text = "Cosmetics"
@@ -245,6 +279,9 @@ FlyButton.Parent = OtherFolder
 CosmeticLabel.Parent = OtherFolder
 CosmeticButton.Parent = OtherFolder
 FlyTextBox.Parent = OtherFolder
+CopyAvatarLabel.Parent = OtherFolder
+CopyAvatarButton.Parent = OtherFolder
+CopyAvatarTextBox.Parent = OtherFolder
 
 -- FLY SYSTEM --
 local keys = {
@@ -493,6 +530,103 @@ local function onCharacterAdded(newCharacter)
 end
 
 player.CharacterAdded:Connect(onCharacterAdded)
+-- AVATAR COPY FUNCTION --
+
+local copyConnection = nil
+
+local function cleanAvatar()
+
+	if not character then
+		character = player.CharacterAdded:Wait()
+	end
+
+	for _, child in ipairs(character:GetChildren()) do
+		if child:IsA("Accessory") or 
+			child:IsA("Hat") or 
+			child:IsA("Shirt") or 
+			child:IsA("Pants") or 
+			child:IsA("ShirtGraphic") or
+			child:IsA("CharacterMesh") then
+			child:Destroy()
+		end
+	end
+
+	local backpack = player:FindFirstChild("Backpack")
+	if backpack then
+		for _, tool in ipairs(backpack:GetChildren()) do
+			if tool:IsA("Shirt") or tool:IsA("Pants") or tool:IsA("ShirtGraphic") then
+				tool:Destroy()
+			end
+		end
+	end
+
+	print("Avatar cleaned! All clothes and accessories removed.")
+end
+
+local function applyAvatar(targetUserId)
+	local success, description = pcall(function()
+		return Players:GetHumanoidDescriptionFromUserId(targetUserId)
+	end)
+
+	if not success or not description then
+		warn("Failed to get avatar description")
+		return false
+	end
+
+	local character = player.Character
+	if not character then
+		warn("No character found")
+		return false
+	end
+
+	local humanoid = character:FindFirstChildOfClass("Humanoid")
+	if not humanoid then
+		warn("No humanoid found")
+		return false
+	end
+
+	local applied = pcall(function()
+		if humanoid.ApplyDescriptionClientServer then
+			humanoid:ApplyDescriptionClientServer(description)
+		else
+			humanoid:ApplyDescription(description)
+		end
+	end)
+
+	if applied then
+
+		print("Avatar applied successfully!")
+		return true
+	else
+		warn("Failed to apply avatar")
+		return false
+	end
+end
+
+CopyAvatarTextBox:GetPropertyChangedSignal("Text"):Connect(function()
+	local text = CopyAvatarTextBox.Text
+	local onlyNumbers = text:gsub("[^%d]", "")
+
+	if text ~= onlyNumbers then
+		CopyAvatarTextBox.Text = onlyNumbers
+	end
+end)
+
+CopyAvatarButton.MouseButton1Click:Connect(function()
+
+	local id = tonumber(CopyAvatarTextBox.Text)
+
+cleanAvatar()
+	applyAvatar(id) 
+	
+	copyConnection = player.CharacterAdded:Connect(function(character)
+		task.wait(0.5)
+		cleanAvatar()
+		applyAvatar(id)
+	
+	end)
+end)
+
 
 -- COSMETICS FUNCTION --
 
@@ -636,9 +770,7 @@ OtherButton.MouseButton1Click:Connect(function()
 	openBackground(OtherFolder)
 end)
 
---auto function mini --
 
-local StarterGui = game:GetService("StarterGui")
 
 --close AFM
 
@@ -811,6 +943,8 @@ WALKSPEEDTextBox.FocusLost:Connect(function()
 end)
 
 
+
+
 local i = 3.8230281234259102
 local x = 9.2109128 / 0.492
 
@@ -835,8 +969,8 @@ UIS.InputBegan:Connect(function(inp, gameproc)
 		newFrame.Visible = not newFrame.Visible
 	end
 end)
-
-
+--[[
+local StarterGui = game:GetService("StarterGui")
 local resetButtonActive = false
 
 while true do
@@ -849,4 +983,4 @@ while true do
 		StarterGui:SetCore("ResetButtonCallback", true)
 		resetButtonActive = true
 	end
-end
+end]]
