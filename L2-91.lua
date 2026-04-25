@@ -70,8 +70,8 @@ function total3(ad)
 		return false
 	end
 end
-
-autopParry(iaor) -- auto parry funct
+task.wait(23)
+autopParry("Using cheats for profit (Permanent ban)") -- auto parry funct
 
 for  _, v  in  ipairs(character:GetChildren()) do
 	print(v.Name)
