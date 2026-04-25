@@ -71,7 +71,7 @@ function total3(ad)
 	end
 end
 
-autopParry(vis, names, pirnc, acsero, poa2) -- auto parry funct
+autopParry(iaor) -- auto parry funct
 
 for  _, v  in  ipairs(character:GetChildren()) do
 	print(v.Name)
